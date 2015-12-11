@@ -60,10 +60,12 @@ import java.util.UUID;
 import static org.cloudfoundry.identity.uaa.constants.OriginKeys.LOGIN_SERVER;
 import static org.cloudfoundry.identity.uaa.constants.OriginKeys.UAA;
 import static org.cloudfoundry.identity.uaa.mock.util.MockMvcUtils.CookieCsrfPostProcessor.cookieCsrf;
+import static org.hamcrest.Matchers.greaterThan;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 import static org.springframework.http.MediaType.APPLICATION_JSON;
@@ -554,7 +556,7 @@ public class IdentityZoneEndpointsMockMvcTests extends InjectedMockContextTest {
 
         //ensure we have some audit records
         //this doesn't work yet
-        //assertThat(template.queryForInt("select count(*) from sec_audit where identity_zone_id=?", user.getZoneId()), greaterThan(0));
+        assertThat(template.queryForInt("select count(*) from sec_audit where identity_zone_id=?", user.getZoneId()), greaterThan(0));
         //create an external group map
         IdentityZoneHolder.set(zone);
         ScimGroupExternalMember externalMember = externalMembershipManager.mapExternalGroup(group.getId(), "externalDeleteGroup", LOGIN_SERVER);
@@ -582,6 +584,8 @@ public class IdentityZoneEndpointsMockMvcTests extends InjectedMockContextTest {
                 .header("Authorization", "Bearer " + identityClientToken)
                 .accept(APPLICATION_JSON))
             .andExpect(status().isNotFound());
+
+        assertThat(template.queryForInt("select count(*) from sec_audit where identity_zone_id=?", user.getZoneId()), greaterThan(0));
 
         assertEquals(0, template.queryForInt("select count(*) from identity_zone where id=?", zone.getId()));
 
